@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MP3 Player</title>
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#121212" />
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #121212;
+      color: #f0f0f0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 10px;
+      text-align: center;
+    }
+    #player {
+      background: #1e1e1e;
+      padding: 20px;
+      border-radius: 15px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+      width: 100%;
+      max-width: 600px;
+    }
+    h2 {
+      font-size: 1.5rem;
+      margin-bottom: 15px;
+      word-wrap: break-word;
+    }
+    #controls {
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+      margin: 20px 0;
+    }
+    button {
+      background: #007bff;
+      border: none;
+      border-radius: 50%;
+      width: 55px;
+      height: 55px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+    button:hover { background: #0056b3; transform: scale(1.05); }
+    button:active { transform: scale(0.95); }
+    button svg {
+      fill: white;
+      width: 24px;
+      height: 24px;
+    }
+    #seekbar {
+      width: 100%;
+      height: 8px;
+      margin: 15px 0;
+      background: #333;
+      border-radius: 4px;
+      appearance: none;
+      cursor: pointer;
+    }
+    #seekbar::-webkit-slider-thumb {
+      appearance: none;
+      width: 20px;
+      height: 20px;
+      background: #007bff;
+      border-radius: 50%;
+    }
+    #playlist {
+      list-style: none;
+      padding: 0;
+      margin: 15px 0 0 0;
+      max-height: 250px;
+      overflow-y: auto;
+      background: #2a2a2a;
+      border-radius: 8px;
+      text-align: left;
+    }
+    #playlist li {
+      padding: 12px 16px;
+      border-bottom: 1px solid #333;
+      color: #e0e0e0;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+    #playlist li:hover { background: #444; }
+    #playlist li.active {
+      background: #007bff;
+      color: white;
+    }
+    #playlist::-webkit-scrollbar {
+      width: 6px;
+    }
+    #playlist::-webkit-scrollbar-thumb {
+      background: #007bff;
+      border-radius: 4px;
+    }
+    @media (max-width: 480px) {
+      #player { padding: 15px; }
+      h2 { font-size: 1.3rem; }
+      #playlist { max-height: 200px; }
+    }
+  </style>
+</head>
+<body>
+  <div id="player">
+    <h2 id="trackTitle">MP3 Player</h2>
+    <audio id="audio" preload="auto"></audio>
+    <input type="range" id="seekbar" value="0" max="100" />
+    <div id="controls">
+      <button onclick="prevTrack()" aria-label="Previous">
+        <svg viewBox="0 0 24 24"><path d="M6 18V6h2v5.5l7.5-5.5v13L8 12.5V18z"/></svg>
+      </button>
+      <button onclick="togglePlayPause()" aria-label="Play/Pause">
+        <svg id="playPauseIcon" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+      </button>
+      <button onclick="nextTrack()" aria-label="Next">
+        <svg viewBox="0 0 24 24"><path d="M16 6v5.5L8.5 6v13L16 12.5V18h2V6z"/></svg>
+      </button>
+    </div>
+    <ul id="playlist"></ul>
+  </div>
+
+
+
+
+
+
+
+
+
+
+  <script>
+    
+const tracks = [
+
+
+  { file: "Kannolam - sonu .s.raj", src: "https://files.catbox.moe/n1obus.mp3" },
+{ file: "Ee pooveyilil - Sagar Cinema", src: "https://files.catbox.moe/2kusr6.mp3" },
+{ file: "Neela Shalabhame - Ashwin Kumar", src: "https://files.catbox.moe/djewuz.mp3" },
+{ file: "Priyamullavane - AKHILA MAYA", src: "https://files.catbox.moe/igi4mc.mp3" },
+{ file: "Chillu jalaka vathilil - Classmates", src: "https://files.catbox.moe/lqg351.mp3" },
+{ file: "Enguninnu vanna - Calcutta News", src: "https://files.catbox.moe/1w6aec.mp3" }
+
+{ file: "A Thousand Miles", src: "https://files.catbox.moe/2z5f29.mp3" },
+{ file: "Billie Eilish - WILDFLOWER", src: "https://files.catbox.moe/q8ungv.mp3" },
+{ file: "Epic Slavic Music - Slavic Queen", src: "https://files.catbox.moe/yoymhs.mp3" },
+{ file: "Lost in a Bad Way", src: "https://files.catbox.moe/7dink7.mp3" },
+{ file: "t.A.T.u. - ATTSS", src: "https://files.catbox.moe/sc5sys.mp3" },
+
+  { file: "Oru Naalaikkul", src: "https://files.catbox.moe/a2jnw3.mp3" },
+{ file: "Pirai Thedum", src: "https://files.catbox.moe/17h277.mp3" },
+{ file: "Manasellam Mazhaiye", src: "https://files.catbox.moe/gjh9jm.mp3" },
+{ file: "Kangal Irandal", src: "https://files.catbox.moe/b3zi65.mp3" },
+{ file: "Moongil Thottam", src: "https://files.catbox.moe/p8fv50.mp3" },
+{ file: "Velicha Poove", src: "https://files.catbox.moe/nuyo9a.mp3" },
+{ file: "Kadhal Kan Kattudhe", src: "https://files.catbox.moe/l32g5f.mp3" },
+{ file: "Kannala Kannala", src: "https://files.catbox.moe/57x0lu.mp3" },
+{ file: "Naan Nee", src: "https://files.catbox.moe/kjol4d.mp3" },
+{ file: "Yaaro Ivan", src: "https://files.catbox.moe/znzrxd.mp3" },
+{ file: "Chennai Sentamizh", src: "https://files.catbox.moe/wf7vm2.mp3" },
+{ file: "Kadhal Vaithu", src: "https://files.catbox.moe/19w92b.mp3" },
+{ file: "Neeye Neeye", src: "https://files.catbox.moe/u2iwjx.mp3" },
+{ file: "Unakkul Naane", src: "https://files.catbox.moe/lsjbv1.mp3" },
+{ file: "June Ponal", src: "https://files.catbox.moe/vnpun7.mp3" },
+{ file: "Mazhai Varum (Female)", src: "https://files.catbox.moe/xx2eht.mp3" },
+{ file: "Ennavale Ennai", src: "https://files.catbox.moe/jllq6n.mp3" },
+{ file: "Mudhal Mudhalaaga", src: "https://files.catbox.moe/w7efbs.mp3" },
+{ file: "Jilendru Oru Kalavaram", src: "https://files.catbox.moe/256q9a.mp3" },
+{ file: "Oru Kili Oru Kilii", src: "https://files.catbox.moe/x3m41r.mp3" },
+{ file: "Ennamo Yeadho", src: "https://files.catbox.moe/cael1r.mp3" },
+{ file: "Pessamal", src: "https://files.catbox.moe/a3zclq.mp3" },
+{ file: "Nenjin Ezhuth", src: "https://files.catbox.moe/eaxisi.mp3" },
+{ file: "Neeyo", src: "https://files.catbox.moe/uansl5.mp3" },
+{ file: "Ithale Nee", src: "https://files.catbox.moe/hkicn6.mp3" },
+{ file: "Pranayame", src: "https://files.catbox.moe/0tk1n8.mp3" },
+{ file: "Nee Illai Endraal", src: "https://files.catbox.moe/rct08n.mp3" },
+  
+
+
+
+{ file: "Anchu Sundarikal Title Song", src: "https://files.catbox.moe/9il8y9.mp3" },
+
+
+{ file: "Etho Vazhitharayil", src: "https://files.catbox.moe/01hshi.mp3" },
+
+{ file: "Chenthamara Chundil", src: "https://files.catbox.moe/az0msc.mp3" },
+
+ { file: "Ethetho Swapnamo", src: "https://files.catbox.moe/x8g3y2.mp3" },
+{ file: "Nee En Mizhikalil", src: "https://files.catbox.moe/uvjpee.mp3" },
+{ file: "Sayyaave", src: "https://files.catbox.moe/cok1kn.mp3" },
+
+{ file: "Edanin Madhunirayum", src: "https://files.catbox.moe/8lx7e0.mp3" },
+
+{ file: "Ee Raavum", src: "https://files.catbox.moe/tg5f73.mp3" },
+
+{ file: "Kaattil Parannirangum", src: "https://files.catbox.moe/h56cn6.mp3" },
+
+{ file: "Vaarthinkalee", src: "https://files.catbox.moe/iek0eg.mp3" },
+
+{ file: "Kanni Malare", src: "https://files.catbox.moe/6zolke.mp3" },
+
+{ file: "Kilivaathil Melle", src: "https://files.catbox.moe/qnzr9l.mp3" },
+
+{ file: "Manjuneeril - Female2", src: "https://files.catbox.moe/6t1s8d.mp3" },
+
+{ file: "Nilapakshi", src: "https://files.catbox.moe/wlxob5.mp3" },
+
+{ file: "Ennuyire Penkiliye", src: "https://files.catbox.moe/jggglm.mp3" },
+
+{ file: "Mazhayil", src: "https://files.catbox.moe/oa465k.mp3" },
+
+{ file: "Neelathaamare Punyam", src: "https://files.catbox.moe/mhqro5.mp3" },
+
+{ file: "Neeyo", src: "https://files.catbox.moe/uansl5.mp3" },
+
+{ file: "Nilaave Nilaave", src: "https://files.catbox.moe/qr7zbv.mp3" },
+
+{ file: "Oh My Julie", src: "https://files.catbox.moe/048ium.mp3" },
+
+{ file: "Ormakal Verodum", src: "https://files.catbox.moe/t8z15l.mp3" },
+
+{ file: "Njan Varumee", src: "https://files.catbox.moe/sqdywg.mp3" },
+
+{ file: "Kinavil", src: "https://files.catbox.moe/l9qeu5.mp3" },
+
+{ file: "Rendu Kaadhal", src: "https://files.catbox.moe/xtdg2h.mp3" },
+
+{ file: "Raa Thaarame", src: "https://files.catbox.moe/44rqis.mp3" },
+
+{ file: "Paattil Ee Paattil", src: "https://files.catbox.moe/vwefv7.mp3" },
+
+{ file: "Oru Raapoo", src: "https://files.catbox.moe/3k4ad5.mp3" },
+
+{ file: "Oro Shwasavum", src: "https://files.catbox.moe/uuvang.mp3" },
+
+
+{ file: "Zita's Lullaby", src: "https://files.catbox.moe/5eucle.mp3" },
+
+    { file: "Neeyam Thanalinu (Duet)", src: "https://files.catbox.moe/y11pt9.mp3" },
+{ file: "Priyankari", src: "https://files.catbox.moe/4pea06.mp3" },
+{ file: "Oh God", src: "https://files.catbox.moe/30266w.mp3" },
+{ file: "Nila Veyilil", src: "https://files.catbox.moe/1tbd2c.mp3" },
+{ file: "Oho Nenjil", src: "https://files.catbox.moe/1p2sim.mp3" },
+{ file: "Rithu Shalabhame Duet", src: "https://files.catbox.moe/oqo8k0.mp3" },
+  { file: "Lolalolamaay", src: "https://files.catbox.moe/lbijqw.mp3" },
+
+{ file: "Tune Jo Na Kaha ", src: "https://files.catbox.moe/ttlaq5.mp3" },
+  
+  { file: "Kaanamullal", src: "https://files.catbox.moe/xdzb70.mp3" },
+{ file: "Ennum Ninne", src: "https://files.catbox.moe/ddz4te.mp3" },
+{ file: "Venmegham", src: "https://files.catbox.moe/5z04uv.mp3" },
+{ file: "Pulari Pon Prave", src: "https://files.catbox.moe/6v6x5e.mp3" },
+{ file: "Aaromal", src: "https://files.catbox.moe/a2g7yc.mp3" },
+{ file: "Vellil Paravakalai", src: "https://files.catbox.moe/5fm85k.mp3" },
+{ file: "Chinni Chinni", src: "https://files.catbox.moe/zmvvan.mp3" },
+{ file: "Камин TikTok Remix", src: "https://files.catbox.moe/amw445.mp3" },
+{ file: "Penne Penne", src: "https://files.catbox.moe/tubhkx.mp3" },
+  { file: "neeyen omal punchiri", src: "https://files.catbox.moe/ce9eq6.mp4" },
+  { file: "kombil kombil - duet", src: "https://files.catbox.moe/qcn9gv.mp3" },
+  { file: "La Bouche - Sweet Dreams", src: "https://files.catbox.moe/mvqbd5.m4a" },
+  { file: "Thazhvaram", src: "https://files.catbox.moe/3mqwrp.mp3" },
+  { file: "Kaattuvannu Chaare", src: "https://files.catbox.moe/w8bcic.mp3" },
+  { file: "Imakal", src: "https://files.catbox.moe/v7j8wb.mp3" },
+  { file: "Pranayamanithu", src: "https://files.catbox.moe/j98mpb.mp3" },
+  { file: "Aalum Thee", src: "https://files.catbox.moe/0spbl7.mp3" },
+  { file: "Maaran", src: "https://files.catbox.moe/3cbik1.mp3" },
+  { file: "Vennilavin Thaliralle", src: "https://files.catbox.moe/0v2fzg.mp3" },
+  { file: "Neer Palunkin - Vegam", src: "https://files.catbox.moe/cqc6b1.mp3" },
+  { file: "Orbit", src: "https://files.catbox.moe/2wq806.mp3" },
+  { file: "Rebirth", src: "https://files.catbox.moe/pcqsve.mp3" },
+  { file: "Kasavinal", src: "https://files.catbox.moe/x1s0cz.mp3" },
+  { file: "Yaanam", src: "https://files.catbox.moe/7v41i5.mp3" },
+  { file: "Mulchedi", src: "https://files.catbox.moe/pp8s19.mp3" },
+  { file: "Ee Raavum", src: "https://files.catbox.moe/cqkshs.mp3" },
+  { file: "Kandu Ravithalil", src: "https://files.catbox.moe/oywxfl.mp3" }
+];
+
+
+
+
+
+
+
+    const audio = document.getElementById('audio');
+    const seekbar = document.getElementById('seekbar');
+    const playlist = document.getElementById('playlist');
+    const playPauseIcon = document.getElementById('playPauseIcon');
+    const trackTitle = document.getElementById('trackTitle');
+    let currentTrack = 0;
+    let isPlaying = false;
+
+    function updateTrackTitle() {
+      trackTitle.textContent = tracks[currentTrack].file.replace('.mp3', '');
+    }
+
+    function updatePlaylistUI() {
+      playlist.querySelectorAll('li').forEach((li, index) => {
+        li.classList.toggle('active', index === currentTrack);
+        if (index === currentTrack) {
+          li.scrollIntoView({ behavior: "smooth", block: "nearest" });
+        }
+      });
+    }
+
+    function loadTrack(index, autoplay = false) {
+      currentTrack = index;
+      audio.src = tracks[index].src;
+      updateTrackTitle();
+      updatePlaylistUI();
+      if (autoplay) playTrack();
+    }
+
+    function playTrack() {
+      audio.play();
+      isPlaying = true;
+      playPauseIcon.innerHTML = '<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>';
+    }
+
+    function pauseTrack() {
+      audio.pause();
+      isPlaying = false;
+      playPauseIcon.innerHTML = '<path d="M8 5v14l11-7z"/>';
+    }
+
+    function togglePlayPause() {
+      isPlaying ? pauseTrack() : playTrack();
+    }
+
+    function nextTrack() {
+      currentTrack = (currentTrack + 1) % tracks.length;
+      loadTrack(currentTrack, true);
+    }
+
+    function prevTrack() {
+      currentTrack = (currentTrack - 1 + tracks.length) % tracks.length;
+      loadTrack(currentTrack, true);
+    }
+
+    audio.addEventListener('timeupdate', () => {
+      seekbar.value = (audio.currentTime / audio.duration) * 100 || 0;
+    });
+
+    seekbar.addEventListener('input', () => {
+      audio.currentTime = (seekbar.value / 100) * audio.duration;
+    });
+
+    audio.addEventListener('ended', () => {
+      nextTrack();
+    });
+
+    // Create playlist items
+    tracks.forEach((track, index) => {
+      const li = document.createElement('li');
+      li.textContent = track.file.replace('.mp3', '');
+      li.addEventListener('click', () => loadTrack(index, true));
+      playlist.appendChild(li);
+    });
+
+    loadTrack(currentTrack);
+
+    // Register service worker for PWA
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('sw.js');
+    }
+  </script>
+</body>
+</html>
